@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 本地监视器状态（每次生成会更新，不需要提交）
+.watcher_state.json
+watcher.log
+
+# 构建生成的中间产物（由 GitHub Actions 生成，不需要提交到仓库）
+# HTML 文件名带动态日期，用通配符匹配
+菌种分布图（*.html
+韦恩图*.png
+
+# 临时文件
+temp_inter.html
+
+# 编辑器
+.vscode/
+.idea/
+
+# 系统文件
+.DS_Store
+Thumbs.db

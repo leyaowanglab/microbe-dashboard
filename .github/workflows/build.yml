@@ -1,0 +1,109 @@
+name: 构建并发布菌种分布图
+
+# ============================================================
+# 触发条件：
+#   1. 推送到 main 分支（当你把 细菌库.xlsx 提交上来时自动触发）
+#   2. 手动点击 Actions 页面的 "Run workflow" 按钮
+#
+# 实现目标：
+#   - 安装依赖 → 运行 generate_dashboard.py 生成 HTML → 发布到 GitHub Pages
+# ============================================================
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}   # 允许手动触发
+
+# 给 Pages 写入权限
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # --------------------------------------------------
+      # 1. 检出仓库代码
+      # --------------------------------------------------
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------
+      # 2. 配置 Python 环境
+      # --------------------------------------------------
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # --------------------------------------------------
+      # 3. 安装依赖
+      # --------------------------------------------------
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # --------------------------------------------------
+      # 4. 运行生成脚本
+      #    generate_dashboard.py 默认读取仓库内的 细菌库.xlsx，
+      #    生成「菌种分布图（YYYYMMDD）.html」（日期自动跟随当前时间）
+      #
+      #    MPLBACKEND=Agg 强制 matplotlib 使用无界面后端，
+      #    避免 Linux 无显示环境报错。
+      # --------------------------------------------------
+      - name: 生成 HTML
+        env:
+          MPLBACKEND: Agg
+        run: python generate_dashboard.py
+
+      # --------------------------------------------------
+      # 5. 校验生成结果
+      #    文件名带动态日期，用通配符匹配
+      # --------------------------------------------------
+      - name: 校验输出文件
+        run: |
+          html_file=$(ls 菌种分布图（*.html 2>/dev/null | head -n 1)
+          if [ -z "$html_file" ]; then
+            echo "错误：未找到生成的 HTML 文件"
+            exit 1
+          fi
+          echo "生成的 HTML 文件：$html_file"
+          ls -lh "$html_file"
+          echo "HTML_FILE=$html_file" >> "$GITHUB_ENV"
+
+      # --------------------------------------------------
+      # 6. 整理发布产物到 publish 目录
+      #    把 HTML 重命名为 index.html，
+      #    这样 Pages 打开目录时直接显示它
+      #    （韦恩图已内嵌在 HTML 中，无需单独复制）
+      # --------------------------------------------------
+      - name: 整理发布目录
+        run: |
+          mkdir -p publish
+          cp "$HTML_FILE" publish/index.html
+
+      # --------------------------------------------------
+      # 7. 上传产物（供后续 Pages 部署使用）
+      # --------------------------------------------------
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish/
+
+  # ==========================================================
+  # 独立的 Pages 部署 Job
+  # ==========================================================
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
