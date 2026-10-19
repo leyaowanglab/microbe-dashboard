@@ -4,7 +4,7 @@
 
 ## 在线访问
 
-- **GitHub Pages 地址**：`https://<你的用户名>.github.io/<仓库名>/`
+- **GitHub Pages 地址**：`https://leyaowanglab.smart.org.cn/microbe-dashboard/`
   （部署成功后，打开此地址即可看到最新网页）
 
 ## 项目文件说明
@@ -12,7 +12,7 @@
 | 文件 | 作用 |
 |------|------|
 | `细菌库.xlsx` | 菌种原始数据（成人 / 儿童两个 sheet） |
-| `generate_dashboard.py` | 核心脚本：读取数据 → 生成旭日图 + 韦恩图 HTML（文件名日期自动跟随当前时间） |
+| `generate_dashboard.py` | 核心脚本：读取数据 → 生成旭日图 + 韦恩图 HTML |
 | `requirements.txt` | Python 依赖清单（GitHub Actions 用它安装环境） |
 | `.github/workflows/build.yml` | GitHub Actions 自动构建 + 发布配置 |
 | `watcher.py` | （可选）本地文件监听器，检测 细菌库.xlsx 变化自动重跑 |
@@ -22,7 +22,7 @@
 ## 自动构建 + 发布流程
 
 ```
-你修改 细菌库.xlsx
+修改细菌库.xlsx
       ↓
 git 提交并推送到 GitHub main 分支
       ↓
@@ -94,6 +94,4 @@ python generate_dashboard.py
 ```
 
 生成结果为：
-- `菌种分布图（YYYYMMDD）.html` —— 交互式网页（日期为生成当天的日期，例如 `菌种分布图（20261019）.html`）
-
-（韦恩图已直接内嵌在 HTML 第 ⑦ 标签页中，不再单独输出 PNG 文件。）
+- `菌种分布图（YYYYMMDD）.html` —— 交互式网页
